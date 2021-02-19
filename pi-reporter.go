@@ -16,7 +16,6 @@ const InfluxDBHost = "192.168.128.200"
 const InfluxDBPort = "8086"
 const InfluxDBNameProd = "pi_reporter"
 const InfluxDBNameDev = "pi_reporter_dev"
-const Test = "AQWE"
 
 func main() {
 	// open log file to append
