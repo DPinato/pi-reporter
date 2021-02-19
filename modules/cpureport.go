@@ -33,7 +33,7 @@ type CPUCoreLoad struct {
 
 const DefaultCPUReportTime = 30 * time.Second
 const CPUStatsFile = "/proc/stat"
-const MeasurementsName = "cpu_load"
+const CPUMeasurementsName = "cpu_load"
 
 func ReportCPUUsage(dbName string, c client.Client) {
 	var err error
@@ -144,7 +144,7 @@ func reportCPUUsageToInflux(dbName, piName string, load []float64, c client.Clie
 		fields[key] = elem
 	}
 
-	point, err := client.NewPoint(MeasurementsName, tags, fields, time.Now())
+	point, err := client.NewPoint(CPUMeasurementsName, tags, fields, time.Now())
 	bp.AddPoint(point)
 	err = c.Write(bp)
 	if err != nil {
