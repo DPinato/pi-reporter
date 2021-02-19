@@ -5,6 +5,7 @@ import (
 	"io"
 	"log"
 	"os"
+	"sync"
 
 	"github.com/dpinato/pi-reporter/modules"
 	client "github.com/influxdata/influxdb1-client/v2"
@@ -39,8 +40,21 @@ func main() {
 	log.Printf("Connected to DB %s:%s\n", InfluxDBHost, InfluxDBPort)
 
 	// start reporting
-	// modules.ReportCPUUsage(InfluxDBNameDev, c)
-	modules.ReportNetworkStats(InfluxDBNameDev, c)
+	var wg sync.WaitGroup
+	wg.Add(1)
+	go func(wg *sync.WaitGroup) {
+		defer wg.Done()
+		modules.ReportCPUUsage(InfluxDBNameDev, c)
+	}(&wg)
+
+	wg.Add(1)
+	go func(wg *sync.WaitGroup) {
+		defer wg.Done()
+		modules.ReportNetworkStats(InfluxDBNameDev, c)
+	}(&wg)
+
+	wg.Wait()
+	log.Printf("pi-reporter is ending ...\n")
 
 }
 

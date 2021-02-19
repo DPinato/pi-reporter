@@ -41,7 +41,6 @@ func ReportNetworkStats(dbName string, c client.Client) error {
 				if err != nil {
 					log.Println(err)
 				}
-				log.Println(stat)
 
 				err = reportNetStatsToInflux(dbName, myName, stat, t, c)
 				if err != nil {
