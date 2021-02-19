@@ -39,7 +39,8 @@ func main() {
 	log.Printf("Connected to DB %s:%s\n", InfluxDBHost, InfluxDBPort)
 
 	// start reporting
-	modules.ReportCPUUsage(InfluxDBNameDev, c)
+	// modules.ReportCPUUsage(InfluxDBNameDev, c)
+	modules.ReportNetworkStats(InfluxDBNameDev, c)
 
 }
 
