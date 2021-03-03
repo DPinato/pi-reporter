@@ -20,8 +20,8 @@ func Test_getWiredNetworkUsageSample(t *testing.T) {
 		}
 
 		// check that we got all the expected values
-		if len(stat.Statistics) != len(WiredStatsList) {
-			t.Errorf("Did not retrieve %d statistics, only %d\n", len(WiredStatsList), len(stat.Statistics))
+		if len(stat.Statistics) != len(NetStatsList) {
+			t.Errorf("Did not retrieve %d statistics, only %d\n", len(NetStatsList), len(stat.Statistics))
 		}
 	})
 }
