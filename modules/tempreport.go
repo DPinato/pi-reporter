@@ -11,7 +11,7 @@ import (
 	client "github.com/influxdata/influxdb1-client/v2"
 )
 
-const DefaultTempReportTime = 5 * time.Second
+const DefaultTempReportTime = 30 * time.Second
 const TempStatsPath = "/sys/class/thermal/thermal_zone0/temp"
 const TempMeasurementsName = "temperature_stats"
 
