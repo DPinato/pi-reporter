@@ -29,7 +29,6 @@ func ReportTempStats(dbName string, c client.Client) error {
 				continue
 			}
 
-			log.Println(stat)
 			err = reportTempStatsToInflux(dbName, myName, stat, t, c)
 			if err != nil {
 				log.Println(err)
