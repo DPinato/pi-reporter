@@ -52,26 +52,22 @@ func getPITemperature() (float64, error) {
 }
 
 func reportTempStatsToInflux(dbName, piName string, stat float64, now time.Time, c client.Client) error {
-	bp, err := client.NewBatchPoints(client.BatchPointsConfig{
-		Database:  dbName,
-		Precision: "ms",
-	})
-	if err != nil {
-		return err
-	}
-
 	tags := map[string]string{
 		"pi_name": piName,
 	}
 	fields := map[string]interface{}{}
 	fields["temperature"] = stat
 
-	point, err := client.NewPoint(TempMeasurementsName, tags, fields, now)
-	bp.AddPoint(point)
-	err = c.Write(bp)
+	var dbInfoObj helper.DBInfo
+	dbInfoObj.DBName = dbName
+	dbInfoObj.MeasName = TempMeasurementsName
+	dbInfoObj.Tags = tags
+	dbInfoObj.Fields = fields
+	dbInfoObj.Now = now
+
+	err := helper.ReportStatsToInflux(dbInfoObj, c)
 	if err != nil {
 		return err
 	}
-
 	return nil
 }

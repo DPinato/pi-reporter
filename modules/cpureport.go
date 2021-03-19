@@ -48,16 +48,13 @@ func ReportCPUUsage(dbName string, c client.Client) {
 	ticker := time.NewTicker(DefaultCPUReportTime)
 	for {
 		select {
-		case <-ticker.C:
+		case t := <-ticker.C:
 			rawCurrStat, _ := ioutil.ReadFile(CPUStatsFile)
 			currStat := readCPUUsage(string(rawCurrStat))
-
-			// get load
-			currLoad := getCPUUsage(prevStat, currStat)
-			// log.Printf("%.4f\t%.4f\t%.4f\t%.4f\t%.4f\n", currLoad[0], currLoad[1], currLoad[2], currLoad[3], currLoad[4])
+			currLoad := getCPUUsage(prevStat, currStat) // get CPU load for the time period between the samples
 
 			// report to InfluxDB
-			err = reportCPUUsageToInflux(dbName, myName, currLoad, c)
+			err = reportCPUUsageToInflux(dbName, myName, currLoad, t, c)
 			if err != nil {
 				log.Println(err)
 			}
@@ -124,16 +121,7 @@ func readCPUUsage(data string) CPULoad {
 	return loadObj
 }
 
-func reportCPUUsageToInflux(dbName, piName string, load []float64, c client.Client) error {
-
-	bp, err := client.NewBatchPoints(client.BatchPointsConfig{
-		Database:  dbName,
-		Precision: "ms",
-	})
-	if err != nil {
-		return err
-	}
-
+func reportCPUUsageToInflux(dbName, piName string, load []float64, now time.Time, c client.Client) error {
 	tags := map[string]string{
 		"pi_name": piName,
 	}
@@ -144,12 +132,16 @@ func reportCPUUsageToInflux(dbName, piName string, load []float64, c client.Clie
 		fields[key] = elem
 	}
 
-	point, err := client.NewPoint(CPUMeasurementsName, tags, fields, time.Now())
-	bp.AddPoint(point)
-	err = c.Write(bp)
+	var dbInfoObj helper.DBInfo
+	dbInfoObj.DBName = dbName
+	dbInfoObj.MeasName = CPUMeasurementsName
+	dbInfoObj.Tags = tags
+	dbInfoObj.Fields = fields
+	dbInfoObj.Now = now
+
+	err := helper.ReportStatsToInflux(dbInfoObj, c)
 	if err != nil {
 		return err
 	}
-
 	return nil
 }

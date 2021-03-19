@@ -92,14 +92,6 @@ func getMemoryStatFromLine(line string) (string, int) {
 }
 
 func reportMemoryStatsToInflux(dbName, piName string, stat map[string]int, now time.Time, c client.Client) error {
-	bp, err := client.NewBatchPoints(client.BatchPointsConfig{
-		Database:  dbName,
-		Precision: "ms",
-	})
-	if err != nil {
-		return err
-	}
-
 	tags := map[string]string{
 		"pi_name": piName,
 	}
@@ -109,12 +101,16 @@ func reportMemoryStatsToInflux(dbName, piName string, stat map[string]int, now t
 		fields[k] = v
 	}
 
-	point, err := client.NewPoint(MemoryMeasurementsName, tags, fields, now)
-	bp.AddPoint(point)
-	err = c.Write(bp)
+	var dbInfoObj helper.DBInfo
+	dbInfoObj.DBName = dbName
+	dbInfoObj.MeasName = MemoryMeasurementsName
+	dbInfoObj.Tags = tags
+	dbInfoObj.Fields = fields
+	dbInfoObj.Now = now
+
+	err := helper.ReportStatsToInflux(dbInfoObj, c)
 	if err != nil {
 		return err
 	}
-
 	return nil
 }

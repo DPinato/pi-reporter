@@ -28,7 +28,6 @@ type NetIFStats struct {
 }
 
 func ReportNetworkStats(dbName string, c client.Client) error {
-	var err error
 	myName, _ := helper.GetPIName(helper.PINetIfaces[0])
 	log.Printf("ReportNetworkStats() is starting, %s\n", myName)
 
@@ -51,8 +50,6 @@ func ReportNetworkStats(dbName string, c client.Client) error {
 
 		}
 	}
-
-	return err
 }
 
 func getNetworkIfStatistics(ifName string) (NetIFStats, error) {
@@ -81,14 +78,6 @@ func getNetworkIfStatistics(ifName string) (NetIFStats, error) {
 }
 
 func reportNetStatsToInflux(dbName, piName string, stat NetIFStats, now time.Time, c client.Client) error {
-	bp, err := client.NewBatchPoints(client.BatchPointsConfig{
-		Database:  dbName,
-		Precision: "ms",
-	})
-	if err != nil {
-		return err
-	}
-
 	tags := map[string]string{
 		"pi_name": piName,
 		"if_name": stat.IfName,
@@ -99,12 +88,16 @@ func reportNetStatsToInflux(dbName, piName string, stat NetIFStats, now time.Tim
 		fields[k] = v
 	}
 
-	point, err := client.NewPoint(NetMeasurementsName, tags, fields, now)
-	bp.AddPoint(point)
-	err = c.Write(bp)
+	var dbInfoObj helper.DBInfo
+	dbInfoObj.DBName = dbName
+	dbInfoObj.MeasName = NetMeasurementsName
+	dbInfoObj.Tags = tags
+	dbInfoObj.Fields = fields
+	dbInfoObj.Now = now
+
+	err := helper.ReportStatsToInflux(dbInfoObj, c)
 	if err != nil {
 		return err
 	}
-
 	return nil
 }
