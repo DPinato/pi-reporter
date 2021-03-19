@@ -67,27 +67,15 @@ func main() {
 
 	// start reporting
 	var wg sync.WaitGroup
-	wg.Add(1)
-	go func(wg *sync.WaitGroup) {
-		defer wg.Done()
-		modules.ReportCPUUsage(influxDBName, c)
-	}(&wg)
 
 	wg.Add(1)
 	go func(wg *sync.WaitGroup) {
+		// these routines should all run at the same time anyway
+		// TODO: should use a channel to listen for an error that breaks the routine
 		defer wg.Done()
-		modules.ReportNetworkStats(influxDBName, c)
-	}(&wg)
-
-	wg.Add(1)
-	go func(wg *sync.WaitGroup) {
-		defer wg.Done()
-		modules.ReportTempStats(influxDBName, c)
-	}(&wg)
-
-	wg.Add(1)
-	go func(wg *sync.WaitGroup) {
-		defer wg.Done()
+		go modules.ReportCPUUsage(influxDBName, c)
+		go modules.ReportNetworkStats(influxDBName, c)
+		go modules.ReportTempStats(influxDBName, c)
 		modules.ReportMemoryStats(influxDBName, c)
 	}(&wg)
 
