@@ -85,6 +85,12 @@ func main() {
 		modules.ReportTempStats(influxDBName, c)
 	}(&wg)
 
+	wg.Add(1)
+	go func(wg *sync.WaitGroup) {
+		defer wg.Done()
+		modules.ReportMemoryStats(influxDBName, c)
+	}(&wg)
+
 	wg.Wait()
 	log.Printf("pi-reporter is ending ...\n")
 
