@@ -43,7 +43,6 @@ func ReportCPUUsage(dbName string, c client.Client) {
 	// get first load sample
 	rawPrevStat, _ := ioutil.ReadFile(CPUStatsFile)
 	prevStat := readCPUUsage(string(rawPrevStat))
-	// log.Println(prevStat)
 
 	ticker := time.NewTicker(DefaultCPUReportTime)
 	for {
@@ -51,7 +50,9 @@ func ReportCPUUsage(dbName string, c client.Client) {
 		case t := <-ticker.C:
 			rawCurrStat, _ := ioutil.ReadFile(CPUStatsFile)
 			currStat := readCPUUsage(string(rawCurrStat))
-			currLoad := getCPUUsage(prevStat, currStat) // get CPU load for the time period between the samples
+
+			// get CPU load for the time period between the samples
+			currLoad := getCPUUsage(prevStat, currStat)
 
 			// report to InfluxDB
 			err = reportCPUUsageToInflux(dbName, myName, currLoad, t, c)
@@ -103,16 +104,16 @@ func readCPUUsage(data string) CPULoad {
 			var tmpLoad CPUCoreLoad
 			list := strings.Split(line, " ")
 
-			tmpLoad.User, _ = strconv.ParseInt(list[1], 10, 32)
-			tmpLoad.Nice, _ = strconv.ParseInt(list[2], 10, 32)
-			tmpLoad.System, _ = strconv.ParseInt(list[3], 10, 32)
-			tmpLoad.Idle, _ = strconv.ParseInt(list[4], 10, 32)
-			tmpLoad.IoWait, _ = strconv.ParseInt(list[5], 10, 32)
-			tmpLoad.Irq, _ = strconv.ParseInt(list[6], 10, 32)
-			tmpLoad.Softirq, _ = strconv.ParseInt(list[7], 10, 32)
-			tmpLoad.Steal, _ = strconv.ParseInt(list[8], 10, 32)
-			tmpLoad.Guest, _ = strconv.ParseInt(list[9], 10, 32)
-			tmpLoad.GuestNice, _ = strconv.ParseInt(list[10], 10, 32)
+			tmpLoad.User, _ = strconv.ParseInt(list[1], 10, 64)
+			tmpLoad.Nice, _ = strconv.ParseInt(list[2], 10, 64)
+			tmpLoad.System, _ = strconv.ParseInt(list[3], 10, 64)
+			tmpLoad.Idle, _ = strconv.ParseInt(list[4], 10, 64)
+			tmpLoad.IoWait, _ = strconv.ParseInt(list[5], 10, 64)
+			tmpLoad.Irq, _ = strconv.ParseInt(list[6], 10, 64)
+			tmpLoad.Softirq, _ = strconv.ParseInt(list[7], 10, 64)
+			tmpLoad.Steal, _ = strconv.ParseInt(list[8], 10, 64)
+			tmpLoad.Guest, _ = strconv.ParseInt(list[9], 10, 64)
+			tmpLoad.GuestNice, _ = strconv.ParseInt(list[10], 10, 64)
 
 			loadObj.Stats = append(loadObj.Stats, tmpLoad)
 		}
