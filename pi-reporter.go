@@ -76,7 +76,8 @@ func main() {
 		go modules.ReportCPUUsage(influxDBName, c)
 		go modules.ReportNetworkStats(influxDBName, c)
 		go modules.ReportTempStats(influxDBName, c)
-		modules.ReportMemoryStats(influxDBName, c)
+		go modules.ReportMemoryStats(influxDBName, c)
+		modules.ReportDiskStats(influxDBName, c)
 	}(&wg)
 
 	wg.Wait()
