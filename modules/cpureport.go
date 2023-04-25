@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -37,8 +38,17 @@ const CPUMeasurementsName = "cpu_load"
 
 func ReportCPUUsage(dbName string, c client.Client) {
 	var err error
+
 	myName, _ := helper.GetPIName(helper.PINetIfaces[0])
-	log.Printf("ReportCPUUsage() is starting, %s\n", myName)
+	hostname, err := os.Hostname()
+	if err != nil {
+		log.Printf("Failed to get hostname - %+v", err)
+		hostname = myName
+	} else if hostname == helper.PIDefaultHostname {
+		hostname = myName
+	}
+
+	log.Printf("ReportCPUUsage() is starting, %s\n", hostname)
 
 	// get first load sample
 	rawPrevStat, _ := ioutil.ReadFile(CPUStatsFile)
@@ -55,7 +65,7 @@ func ReportCPUUsage(dbName string, c client.Client) {
 			currLoad := getCPUUsage(prevStat, currStat)
 
 			// report to InfluxDB
-			err = reportCPUUsageToInflux(dbName, myName, currLoad, t, c)
+			err = reportCPUUsageToInflux(dbName, hostname, currLoad, t, c)
 			if err != nil {
 				log.Println(err)
 			}
@@ -65,9 +75,6 @@ func ReportCPUUsage(dbName string, c client.Client) {
 	}
 }
 
-//
-//
-//
 func getCPUUsage(pStat, nStat CPULoad) []float64 {
 	// pStat is the previous point of CPU usage
 	// pStat is the latest point of CPU usage

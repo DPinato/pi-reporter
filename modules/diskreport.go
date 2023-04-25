@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"os"
 	"reflect"
 	"regexp"
 	"strconv"
@@ -47,7 +48,15 @@ type DiskStats struct {
 
 func ReportDiskStats(dbName string, c client.Client) error {
 	myName, _ := helper.GetPIName(helper.PINetIfaces[0])
-	log.Printf("ReportDiskStats() is starting, %s\n", myName)
+	hostname, err := os.Hostname()
+	if err != nil {
+		log.Printf("Failed to get hostname - %+v", err)
+		hostname = myName
+	} else if hostname == helper.PIDefaultHostname {
+		hostname = myName
+	}
+
+	log.Printf("ReportDiskStats() is starting, %s\n", hostname)
 
 	r, err := regexp.Compile(DiskNameRegexp)
 	if err != nil {
@@ -67,7 +76,7 @@ func ReportDiskStats(dbName string, c client.Client) error {
 			}
 
 			for _, elem := range stats {
-				err = reportDiskStatsToInflux(dbName, myName, elem, t, c)
+				err = reportDiskStatsToInflux(dbName, hostname, elem, t, c)
 				if err != nil {
 					log.Println(err)
 				}

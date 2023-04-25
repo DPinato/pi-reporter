@@ -9,6 +9,7 @@ import (
 )
 
 var PINetIfaces = []string{"eth0", "wlan0"}
+var PIDefaultHostname = "raspberrypi"
 
 type DBInfo struct {
 	DBName   string

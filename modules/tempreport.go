@@ -3,6 +3,7 @@ package modules
 import (
 	"io/ioutil"
 	"log"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -17,7 +18,15 @@ const TempMeasurementsName = "temperature_stats"
 
 func ReportTempStats(dbName string, c client.Client) error {
 	myName, _ := helper.GetPIName(helper.PINetIfaces[0])
-	log.Printf("ReportTempStats() is starting, %s\n", myName)
+	hostname, err := os.Hostname()
+	if err != nil {
+		log.Printf("Failed to get hostname - %+v", err)
+		hostname = myName
+	} else if hostname == helper.PIDefaultHostname {
+		hostname = myName
+	}
+
+	log.Printf("ReportTempStats() is starting, %s\n", hostname)
 
 	ticker := time.NewTicker(DefaultTempReportTime)
 	for {
@@ -29,7 +38,7 @@ func ReportTempStats(dbName string, c client.Client) error {
 				continue
 			}
 
-			err = reportTempStatsToInflux(dbName, myName, stat, t, c)
+			err = reportTempStatsToInflux(dbName, hostname, stat, t, c)
 			if err != nil {
 				log.Println(err)
 			}

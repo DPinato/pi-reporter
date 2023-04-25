@@ -3,6 +3,7 @@ package modules
 import (
 	"io/ioutil"
 	"log"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -29,7 +30,15 @@ type NetIFStats struct {
 
 func ReportNetworkStats(dbName string, c client.Client) error {
 	myName, _ := helper.GetPIName(helper.PINetIfaces[0])
-	log.Printf("ReportNetworkStats() is starting, %s\n", myName)
+	hostname, err := os.Hostname()
+	if err != nil {
+		log.Printf("Failed to get hostname - %+v", err)
+		hostname = myName
+	} else if hostname == helper.PIDefaultHostname {
+		hostname = myName
+	}
+
+	log.Printf("ReportNetworkStats() is starting, %s\n", hostname)
 
 	ticker := time.NewTicker(DefaultNetReportTime)
 	for {
@@ -41,7 +50,7 @@ func ReportNetworkStats(dbName string, c client.Client) error {
 					log.Println(err)
 				}
 
-				err = reportNetStatsToInflux(dbName, myName, stat, t, c)
+				err = reportNetStatsToInflux(dbName, hostname, stat, t, c)
 				if err != nil {
 					log.Println(err)
 				}

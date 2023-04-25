@@ -3,6 +3,7 @@ package modules
 import (
 	"io/ioutil"
 	"log"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -17,7 +18,15 @@ const MemoryMeasurementsName = "memory_stats"
 
 func ReportMemoryStats(dbName string, c client.Client) error {
 	myName, _ := helper.GetPIName(helper.PINetIfaces[0])
-	log.Printf("ReportMemoryStats() is starting, %s\n", myName)
+	hostname, err := os.Hostname()
+	if err != nil {
+		log.Printf("Failed to get hostname - %+v", err)
+		hostname = myName
+	} else if hostname == helper.PIDefaultHostname {
+		hostname = myName
+	}
+
+	log.Printf("ReportMemoryStats() is starting, %s\n", hostname)
 
 	ticker := time.NewTicker(DefaultMemoryReportTime)
 	for {
@@ -29,7 +38,7 @@ func ReportMemoryStats(dbName string, c client.Client) error {
 				continue
 			}
 
-			err = reportMemoryStatsToInflux(dbName, myName, stat, t, c)
+			err = reportMemoryStatsToInflux(dbName, hostname, stat, t, c)
 			if err != nil {
 				log.Println(err)
 			}
